@@ -14,7 +14,7 @@ export @testsetup, @testitem
 export TestSetup, TestItem, TestItemResult
 
 const RETESTITEMS_TEMP_FOLDER = mkpath(joinpath(tempdir(), "ReTestItemsTempLogsDirectory"))
-const DEFAULT_TEST_ITEM_TIMEOUT = 30*60
+const DEFAULT_TEST_ITEM_TIMEOUT = 30 * 60
 const DEFAULT_RETRIES = 0
 
 if isdefined(Base, :errormonitor)
@@ -33,7 +33,7 @@ function softscope(@nospecialize ex)
             return ex′
         elseif h in (:meta, :import, :using, :export, :module, :error, :incomplete, :thunk)
             return ex
-        elseif h === :global && all(x->isa(x, Symbol), ex.args)
+        elseif h === :global && all(x -> isa(x, Symbol), ex.args)
             return ex
         else
             return Expr(:block, Expr(:softscope, true), ex)
@@ -159,7 +159,7 @@ function runtests(
     tags::Union{Symbol,AbstractVector{Symbol},Nothing}=nothing,
     report::Bool=parse(Bool, get(ENV, "RETESTITEMS_REPORT", "false")),
     logs::Symbol=default_log_display_mode(report, nworkers),
-    verbose_results::Bool=logs!=:issues && isinteractive(),
+    verbose_results::Bool=logs != :issues && isinteractive()
 )
     paths′ = filter(paths) do p
         if !ispath(p)
@@ -236,8 +236,8 @@ function _runtests_in_current_env(
     ntestitems = length(testitems.testitems)
     @debugv 1 "Done including tests in $paths"
     @info "Finished scanning for test items in $(round(time() - inc_time, digits=2)) seconds." *
-        " Scheduling $ntestitems tests on pid $(Libc.getpid())" *
-        (nworkers == 0 ? "" : " with $nworkers worker processes and $nworker_threads threads per worker.")
+          " Scheduling $ntestitems tests on pid $(Libc.getpid())" *
+          (nworkers == 0 ? "" : " with $nworkers worker processes and $nworker_threads threads per worker.")
     try
         if nworkers == 0
             # This is where we disable printing for the serial executor case.
@@ -319,7 +319,7 @@ function record_test_error!(testitem, ntries)
     ts = DefaultTestSet(testitem.name)
     err = ErrorException("test item $(repr(testitem.name)) didn't succeed after $ntries tries")
     Test.record(ts, Test.Error(:nontest_error, Test.Expr(:tuple), err,
-        Base.ExceptionStack([(exception=err, backtrace=Union{Ptr{Nothing}, Base.InterpreterIP}[])]),
+        Base.ExceptionStack([(exception=err, backtrace=Union{Ptr{Nothing},Base.InterpreterIP}[])]),
         LineNumberNode(testitem.line, testitem.file)))
     try
         Test.finish(ts)
@@ -379,7 +379,7 @@ function start_and_manage_worker(
                 close(timer)
             end
         catch e
-            @debugv 2 "Error" exception=e
+            @debugv 2 "Error" exception = e
             if !(e isa WorkerTerminatedException || e isa TimeoutException || e isa TestSetFailure)
                 # we don't expect any other kind of error, so rethrow, which will propagate
                 # back up to the main coordinator task and throw to the user
@@ -441,17 +441,17 @@ end
 # i.e. if it ends with one of the identifying suffixes
 function is_test_file(filepath)
     return (
-        endswith(filepath, "_test.jl" ) ||
+        endswith(filepath, "_test.jl") ||
         endswith(filepath, "_tests.jl") ||
-        endswith(filepath, "-test.jl" ) ||
+        endswith(filepath, "-test.jl") ||
         endswith(filepath, "-tests.jl")
     )
 end
 function is_testsetup_file(filepath)
     return (
-        endswith(filepath, "_testsetup.jl" ) ||
+        endswith(filepath, "_testsetup.jl") ||
         endswith(filepath, "_testsetups.jl") ||
-        endswith(filepath, "-testsetup.jl" ) ||
+        endswith(filepath, "-testsetup.jl") ||
         endswith(filepath, "-testsetups.jl")
     )
 end
@@ -475,10 +475,10 @@ function include_testfiles!(project_name, projectfile, paths, shouldrun, report:
     project_root = dirname(projectfile)
     subproject_root = nothing  # don't recurse into directories with their own Project.toml.
     root_node = DirNode(project_name; report, verbose=true)
-    dir_nodes = Dict{String, DirNode}()
+    dir_nodes = Dict{String,DirNode}()
     # setups is populated in store_test_item_setup when we expand a @testsetup
     # we set it below in tls as __RE_TEST_SETUPS__ for each included file
-    setups = Dict{Symbol, TestSetup}()
+    setups = Dict{Symbol,TestSetup}()
     hidden_re = r"\.\w"
     @sync for (root, d, files) in Base.walkdir(project_root)
         if subproject_root !== nothing && startswith(root, subproject_root)
@@ -572,7 +572,7 @@ function identify_project(dir)
     while true
         path == "/" && break
         pf = _project_file(path)
-        if pf !== nothing
+        if pf !== nothing && basename(dirname(pf)) != "test"
             projectfile = pf
             break
         end
@@ -634,7 +634,7 @@ end
 
 # convenience method/globals for testing
 const GLOBAL_TEST_CONTEXT_FOR_TESTING = TestContext("ReTestItems", 0)
-const GLOBAL_TEST_SETUPS_FOR_TESTING = Dict{Symbol, TestSetup}()
+const GLOBAL_TEST_SETUPS_FOR_TESTING = Dict{Symbol,TestSetup}()
 
 # assumes any required setups were expanded outside of a runtests context
 function runtestitem(ti::TestItem; kw...)
@@ -716,7 +716,7 @@ function runtestitem(ti::TestItem, ctx::TestContext; verbose_results::Bool=false
             LineNumberNode(ti.line, ti.file)))
     finally
         # Make sure all test setup logs are commited to file
-        foreach(ts->isassigned(ts.logstore) && flush(ts.logstore[]), ti.testsetups)
+        foreach(ts -> isassigned(ts.logstore) && flush(ts.logstore[]), ti.testsetups)
         ts1 = Test.pop_testset()
         @assert ts1 === ts
         try
