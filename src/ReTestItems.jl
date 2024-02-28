@@ -13,7 +13,7 @@ export runtests, runtestitem
 export @testsetup, @testitem
 export TestSetup, TestItem, TestItemResult
 
-const RETESTITEMS_TEMP_FOLDER = mkpath(joinpath(tempdir(), "ReTestItemsTempLogsDirectory"))
+const RETESTITEMS_TEMP_FOLDER = Ref{String}()
 const DEFAULT_TEST_ITEM_TIMEOUT = 30 * 60
 const DEFAULT_RETRIES = 0
 
@@ -54,6 +54,7 @@ function __init__()
     DEFAULT_STDERR[] = stderr
     DEFAULT_LOGSTATE[] = Base.CoreLogging._global_logstate
     DEFAULT_LOGGER[] = Base.CoreLogging._global_logstate.logger
+    RETESTITEMS_TEMP_FOLDER[] = mkpath(joinpath(tempdir(), "ReTestItemsTempLogsDirectory"))
     return nothing
 end
 
@@ -177,7 +178,7 @@ function runtests(
     # If we were given paths but none were valid, then nothing to run.
     !isempty(paths) && isempty(paths′) && return nothing
     shouldrun_combined(ti) = shouldrun(ti) && _shouldrun(name, ti.name) && _shouldrun(tags, ti.tags)
-    mkpath(RETESTITEMS_TEMP_FOLDER) # ensure our folder wasn't removed
+    mkpath(RETESTITEMS_TEMP_FOLDER[]) # ensure our folder wasn't removed
     save_current_stdio()
     nworkers = max(0, nworkers)
     retries = max(0, retries)
@@ -288,7 +289,7 @@ function _runtests_in_current_env(
     finally
         Test.TESTSET_PRINT_ENABLE[] = true
         # Cleanup test setup logs
-        foreach(rm, filter(endswith(".log"), readdir(RETESTITEMS_TEMP_FOLDER, join=true)))
+        foreach(rm, filter(endswith(".log"), readdir(RETESTITEMS_TEMP_FOLDER[], join=true)))
     end
     return nothing
 end
