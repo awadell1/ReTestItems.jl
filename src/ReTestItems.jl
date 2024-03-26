@@ -996,7 +996,7 @@ function runtestitem(
             LineNumberNode(ti.line, ti.file)))
     finally
         # Make sure all test setup logs are commited to file
-        foreach(ts->isassigned(ts.logstore) && flush(ts.logstore[]), ti.testsetups)
+        foreach(ts->isassigned(ts.logstore) && close(ts.logstore[]), ti.testsetups)
         ts1 = Test.pop_testset()
         task_local_storage()[:__TESTITEM_ACTIVE__] = prev
         @assert ts1 === ts
